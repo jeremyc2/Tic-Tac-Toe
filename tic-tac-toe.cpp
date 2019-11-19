@@ -14,6 +14,7 @@ using namespace std;
 #define PIECE_O 'O'
 #define SPACE '.'
 #define BOARD_SIZE 3
+#define BOARD_COUNT 3
 
 bool read(         char board[][BOARD_SIZE], const char* fileName);
 bool write(  const char board[][BOARD_SIZE], const char* fileName);
@@ -25,7 +26,7 @@ bool didWin( const char board[][BOARD_SIZE], char turn);
  ***********************************************************************/
 int main()
 {
-   char board[BOARD_SIZE][BOARD_SIZE];
+   char board[BOARD_SIZE * BOARD_COUNT][BOARD_SIZE];
 
    // read the board
    char fileName[256];
@@ -65,16 +66,24 @@ bool read(char board[][BOARD_SIZE], const char* fileName)
    if (fin.fail())
       return false;
 
+   int r = 0;
    // read 9 symbols, hopefully they are . X O
-   for (int r = 0; r < BOARD_SIZE; r++)
-      for (int c = 0; c < BOARD_SIZE; c++)
-      {
-         fin >> board[r][c];
-         assert(!fin.fail());
-         assert(board[r][c] == PIECE_X ||
-                board[r][c] == PIECE_O ||
-                board[r][c] == SPACE);
-      }
+   while (!fin.fail())
+   {
+      for (; !fin.fail(); r++)
+         for (int c = 0; c < BOARD_SIZE; c++)
+         {
+            fin >> board[r][c];
+
+            if (fin.fail())
+               break;
+               
+            assert(!fin.fail());
+            assert(board[r][c] == PIECE_X ||
+                  board[r][c] == PIECE_O ||
+                  board[r][c] == SPACE);
+         }
+   }
 
    // close the file
    fin.close();
@@ -94,10 +103,20 @@ bool write(const char board[][BOARD_SIZE], const char* fileName)
    if (fout.fail())
       return false;
 
+   int r = 0;
    // write my 9 symbols
-   for (int r = 0; r < BOARD_SIZE; r++)
+   for (;; r++)
+   {
+      if (!(board[r][0] == PIECE_X ||
+               board[r][0] == PIECE_O ||
+               board[r][0] == SPACE))
+      {
+         break;
+      }
+
       for (int c = 0; c < BOARD_SIZE; c++)
          fout << board[r][c] << (c == 2 ? '\n' : ' ');
+   }
 
    // close it!
    fout.close();
@@ -112,11 +131,20 @@ bool write(const char board[][BOARD_SIZE], const char* fileName)
 void display(const char board[][BOARD_SIZE])
 {
    // loop through each row
-   for (int r = 0; r < BOARD_SIZE; r++)
+   for (int r = 0; true; r++)
    {
+      if (!(board[r][0] == PIECE_X ||
+               board[r][0] == PIECE_O ||
+               board[r][0] == SPACE))
+      {
+         break;
+      }
+
       // only the first row is not preceeded with the --+-- magic
-      if (r != 0)
+      if (r % BOARD_SIZE != 0)
          cout << "---+---+---\n";
+      else
+         cout << endl;
 
       // now, on each row, do the column stuff
       for (int c = 0; c < BOARD_SIZE; c++)
